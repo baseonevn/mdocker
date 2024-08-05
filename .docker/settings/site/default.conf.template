@@ -1,0 +1,25 @@
+upstream fastcgi_backend {
+    least_conn;
+    server fpm:9000;
+}
+client_max_body_size 12M;
+
+map $http_host $MAGE_RUN_CODE {
+    default '';
+    staging.damda.com kr;
+    staging-vn.damda.com vn;
+}
+
+server {
+  listen 80 default;
+  server_name _;
+
+  set $MAGE_ROOT /public_html;
+  set $MAGE_RUN_TYPE store;
+  fastcgi_param  MAGE_MODE $MAGE_MODE;
+
+  include /etc/nginx/setting/mage2.conf;
+
+  error_log /var/log/nginx/mage_error.log;
+  access_log /var/log/nginx/mage_access.log;
+}

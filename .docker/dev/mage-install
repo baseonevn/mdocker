@@ -1,0 +1,34 @@
+#!/bin/sh
+set -ex
+if [ ! -d "/public_html/vendor" ]; then
+    composer install
+fi
+
+if [ ! "$INSTALL_DB" = "false" ]; then
+    echo "Install Magento"
+    INSTALL_COMMAND="mage setup:install \
+        --db-host=$DB_HOST \
+        --db-name=$MYSQL_DATABASE \
+        --db-user=$MYSQL_USER \
+        --db-password=$MYSQL_PASSWORD \
+        --base-url=$BASE_URL \
+        --admin-firstname=$FIRSTNAME \
+        --admin-lastname=$LASTNAME \
+        --admin-email=$EMAIL \
+        --admin-user=$USER \
+        --admin-password=$PASSWORD"
+
+    # Use a separate value for secure base URL, if the variable is set
+    if [ -n "$SECURE_BASE_URL" ]; then
+        INSTALL_COMMAND="$INSTALL_COMMAND --base-url-secure=$SECURE_BASE_URL"
+    fi
+
+    # Only define a backend-frontname if the variable is set, or not empty.
+    if [ -n "$BACKEND_FRONTNAME" ]; then
+        INSTALL_COMMAND="$INSTALL_COMMAND --backend-frontname=$BACKEND_FRONTNAME"
+    fi
+
+    $INSTALL_COMMAND
+    mage setup:upgrade
+    mage setup:static-content:deploy -f
+fi
