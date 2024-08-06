@@ -4,31 +4,28 @@ if [ ! -d "/public_html/vendor" ]; then
     composer install
 fi
 
-if [ ! "$INSTALL_DB" = "false" ]; then
-    echo "Install Magento"
-    INSTALL_COMMAND="mage setup:install \
-        --db-host=$DB_HOST \
-        --db-name=$MYSQL_DATABASE \
-        --db-user=$MYSQL_USER \
-        --db-password=$MYSQL_PASSWORD \
-        --base-url=$BASE_URL \
-        --admin-firstname=$FIRSTNAME \
-        --admin-lastname=$LASTNAME \
-        --admin-email=$EMAIL \
-        --admin-user=$USER \
-        --admin-password=$PASSWORD"
+echo "Install Magento"
+INSTALL_COMMAND="bin/magento setup:install \
+        --base-url=http://${DOMAIN:-localhost} \
+        --base-url-secure=https://${DOMAIN:-localhost} \
+        --db-host=${VARIABLE:-database} \
+        --db-name=${DATABASE:-mage} \
+        --db-user=${DATABASE_USER:-root} \
+        --db-password=${DATABASE_PASSWORD:-root} \
+        --admin-firstname=admin \
+        --admin-lastname=admin \
+        --admin-email=admin@admin.com \
+        --admin-user=admin \
+        --admin-password=admin123 \
+        --backend-frontname=${BACKEND_FRONTNAME:-admin} \
+        --language=en_US \
+        --currency=USD \
+        --timezone=America/Chicago \
+        --use-rewrites=1 --cleanup-database \
+        --search-engine=${ELS_VERSION:-elasticsearch7} \
+        --elasticsearch-host=${ELS_HOST:-els} \
+        --elasticsearch-port=${ELS_PORT:-9200}"
 
-    # Use a separate value for secure base URL, if the variable is set
-    if [ -n "$SECURE_BASE_URL" ]; then
-        INSTALL_COMMAND="$INSTALL_COMMAND --base-url-secure=$SECURE_BASE_URL"
-    fi
-
-    # Only define a backend-frontname if the variable is set, or not empty.
-    if [ -n "$BACKEND_FRONTNAME" ]; then
-        INSTALL_COMMAND="$INSTALL_COMMAND --backend-frontname=$BACKEND_FRONTNAME"
-    fi
-
-    $INSTALL_COMMAND
-    mage setup:upgrade
-    mage setup:static-content:deploy -f
-fi
+$INSTALL_COMMAND
+bin/magento setup:upgrade
+bin/magento setup:static-content:deploy -f

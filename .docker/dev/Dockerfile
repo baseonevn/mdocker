@@ -4,8 +4,6 @@ ARG COMPOSER_VERSION=2.4.4
 
 # Composer build
 FROM composer:${COMPOSER_VERSION} as composer
-WORKDIR "/public_html"
-
 
 # PHP
 FROM php:${PHP_VERSION}-${PHP_MOD}
@@ -68,6 +66,8 @@ RUN docker-php-ext-install \
     imagick \
     redis
 
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
 COPY .docker/settings/php/php-ext.ini /usr/local/etc/php/conf.d/php-ext.ini
 COPY .docker/settings/cron /etc/cron.d/cron
 RUN chmod 0644 /etc/cron.d/cron
@@ -80,14 +80,11 @@ COPY --chown=www-data:www-data --from=composer /usr/bin/composer /usr/bin/compos
 COPY --chown=www-data:www-data --from=composer /tmp/cache /tmp/cache
 RUN chmod +x /usr/bin/composer
 
-COPY --chown=www-data:www-data --from=composer /public_html .
 COPY --chown=www-data:www-data . .
 
 ENV MAGE_MODE=developer
-RUN chmod +x ./bin/magento
-COPY --chown=www-data:www-data .docker/dev/mage-install /mage-install.sh
-RUN chmod +x /mage-install.sh
-ENTRYPOINT ["/mage-install.sh"]
+COPY --chown=www-data:www-data .docker/dev/mage-install /install.sh
+RUN chmod +x /install.sh
 
 EXPOSE 9000
 CMD ["/bin/bash", "-c", "php-fpm"]

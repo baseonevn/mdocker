@@ -11,12 +11,13 @@ services:
     working_dir: /public_html
     volumes:
       - .:/public_html
-      # - ./settings/php/xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
     extra_hosts:
       - "host.docker.internal:host-gateway"
     environment:
       PHP_IDE_CONFIG: "serverName=Mage2.local"
       XDEBUG_ENABLE: true
+    env_file:
+      - .env
     depends_on:
       - database
   database:
@@ -37,8 +38,6 @@ services:
       - SYS_NICE
     tty: true
     stdin_open: true
-    ports:
-      - 3306:3306
   nginx:
     image: "nginx:latest"
     working_dir: /public_html
@@ -54,6 +53,16 @@ services:
       - mage
     links:
       - "mage:fpm"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mage.service=mage"
+      - "traefik.http.routers.mage.rule=Host(`mage.base`)"
+      - "traefik.http.routers.mage.entrypoints=websecure"
+      - "traefik.http.services.mage.loadbalancer.server.port=9000"
+      - "traefik.http.routers.mage.tls=true"
+    networks:
+      - proxy
+      - default
   redis:
     image: redis
     working_dir: /data
