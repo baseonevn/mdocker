@@ -80,8 +80,6 @@ COPY --chown=www-data:www-data --from=composer /usr/bin/composer /usr/bin/compos
 COPY --chown=www-data:www-data --from=composer /tmp/cache /tmp/cache
 RUN chmod +x /usr/bin/composer
 
-COPY --chown=www-data:www-data . .
-
 ENV MAGE_MODE=developer
 COPY --chown=www-data:www-data .docker/dev/mage-install /install.sh
 RUN chmod +x /install.sh

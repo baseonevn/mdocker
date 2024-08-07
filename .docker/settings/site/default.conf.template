@@ -1,6 +1,6 @@
 upstream fastcgi_backend {
     least_conn;
-    server mage:9000;
+    server fpm:9000;
 }
 client_max_body_size 12M;
 
